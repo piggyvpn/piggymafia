@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piggy Mafia</title>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        background-color: #111;
+        color: #eee;
+        font-family: 'Vazirmatn', sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    header {
+        text-align: center;
+        padding: 20px;
+        border-bottom: 2px solid #444;
+    }
+    header h1 {
+        font-family: 'Creepster', cursive;
+        font-size: 3em;
+        color: #ff4d4d;
+    }
+    header img {
+        max-width: 150px;
+        border-radius: 10px;
+    }
+    section {
+        padding: 20px;
+        max-width: 800px;
+        margin: auto;
+        background: #1a1a1a;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    h2 {
+        border-bottom: 1px solid #555;
+        padding-bottom: 10px;
+    }
+    input, button {
+        padding: 8px;
+        margin: 5px 0;
+        border-radius: 5px;
+        border: none;
+    }
+    input {
+        width: calc(100% - 20px);
+    }
+    button {
+        background: #ff4d4d;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #cc0000;
+    }
+    .role-entry {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .results {
+        background: #222;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+<header>
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQCAQAAABFeJW1AAA..." alt="Piggy Mafia">
+    <h1>Piggy Mafia</h1>
+</header>
+
+<section>
+    <h2>🎙 انتخاب راوی</h2>
+    <p>تعداد شرکت‌کنندگان را وارد کنید و سپس نام آن‌ها را وارد کنید تا سایت یک نفر را به عنوان راوی انتخاب کند.</p>
+    <input type="number" id="narratorCount" placeholder="تعداد شرکت‌کنندگان">
+    <div id="narratorNames"></div>
+    <button onclick="generateNarratorInputs()">تایید تعداد</button>
+    <button onclick="pickNarrator()">انتخاب تصادفی راوی</button>
+    <div id="narratorResult" class="results"></div>
+</section>
+
+<section>
+    <h2>🕵️‍♂️ نقش‌های مافیا</h2>
+    <p>تعداد هر نقش را مشخص کنید. می‌توانید نقش جدید اضافه کنید. سپس اسامی بازیکنان را وارد کرده و نقش‌ها را به صورت تصادفی تقسیم کنید.</p>
+    <div id="rolesList"></div>
+    <button onclick="addRole()">➕ افزودن نقش</button>
+    <button onclick="generateRoleInputs()">تایید نقش‌ها</button>
+    <div id="playerNames"></div>
+    <button onclick="assignRoles()">انتخاب تصادفی نقش‌ها</button>
+    <div id="rolesResult" class="results"></div>
+</section>
+
+<script>
+const defaultRoles = [
+    'پدرخوانده','دكتر مافيا','مافيا ساده','شهروند','دكتر شهر','اسنايپر','كاراگاه','روان پزشك','عاشق','خائن','باديگارد'
+];
+
+function createRoleInputs() {
+    const container = document.getElementById('rolesList');
+    container.innerHTML = '';
+    defaultRoles.forEach(role => {
+        const div = document.createElement('div');
+        div.className = 'role-entry';
+        div.innerHTML = `<span>${role}</span> <input type="number" min="0" value="0">`;
+        container.appendChild(div);
+    });
+}
+
+function addRole() {
+    const container = document.getElementById('rolesList');
+    const div = document.createElement('div');
+    div.className = 'role-entry';
+    div.innerHTML = `<input type="text" placeholder="نام نقش"> <input type="number" min="0" value="0">`;
+    container.appendChild(div);
+}
+
+function generateNarratorInputs() {
+    const count = parseInt(document.getElementById('narratorCount').value);
+    const container = document.getElementById('narratorNames');
+    container.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+        container.innerHTML += `<input type='text' placeholder='نام بازیکن ${i+1}'>`;
+    }
+}
+
+function pickNarrator() {
+    const names = [...document.querySelectorAll('#narratorNames input')].map(i => i.value).filter(v => v);
+    if (names.length === 0) return alert('ابتدا نام‌ها را وارد کنید');
+    const narrator = names[Math.floor(Math.random() * names.length)];
+    document.getElementById('narratorResult').innerText = `راوی انتخاب شده: ${narrator}`;
+}
+
+function generateRoleInputs() {
+    const roleEntries = document.querySelectorAll('#rolesList .role-entry');
+    let total = 0;
+    roleEntries.forEach(entry => {
+        const num = parseInt(entry.querySelector('input[type="number"]').value) || 0;
+        total += num;
+    });
+    const container = document.getElementById('playerNames');
+    container.innerHTML = '';
+    for (let i = 0; i < total; i++) {
+        container.innerHTML += `<input type='text' placeholder='نام بازیکن ${i+1}'>`;
+    }
+}
+
+function assignRoles() {
+    const roleEntries = document.querySelectorAll('#rolesList .role-entry');
+    let rolesPool = [];
+    roleEntries.forEach(entry => {
+        let roleName = entry.querySelector('span') ? entry.querySelector('span').innerText : entry.querySelector('input[type="text"]').value;
+        const num = parseInt(entry.querySelector('input[type="number"]').value) || 0;
+        for (let i = 0; i < num; i++) rolesPool.push(roleName);
+    });
+    const names = [...document.querySelectorAll('#playerNames input')].map(i => i.value).filter(v => v);
+    if (rolesPool.length !== names.length) return alert('تعداد نقش‌ها با تعداد بازیکنان برابر نیست');
+    let result = '';
+    const shuffledRoles = rolesPool.sort(() => Math.random() - 0.5);
+    names.forEach((name, idx) => {
+        result += `${name} → ${shuffledRoles[idx]}\n`;
+    });
+    document.getElementById('rolesResult').innerText = result;
+}
+
+createRoleInputs();
+</script>
+</body>
+</html>
